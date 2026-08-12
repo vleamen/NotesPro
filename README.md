@@ -19,6 +19,31 @@ This project recreates the core document-driven layout of Apple Notes, but exten
 * Inline table insertion at cursor position with accurate text-wrapping bounds.
 * Minimalist, system-native UI utilizing macOS environment variables (`NSColor.gridColor`, `tertiaryLabelColor`).
 
+*Supported Formulas & Operations
+=SUM(range)
+
+Calculates the total sum of all numerical values within a specified cell range (e.g., =SUM(A1:A3)).
+
+=AVG(range)
+
+Computes the average (mean) of all numerical values within a specified range (e.g., =AVG(B1:B5)).
+
+=MIN(range)
+
+Evaluates a given range and returns the lowest numerical value.
+
+=MAX(range)
+
+Evaluates a given range and returns the highest numerical value.
+
+=COUNT(range)
+
+Returns the total number of cells containing numerical data within a specified range.
+
+Basic Arithmetic Operators
+
+Supports standard mathematical operations between specific cells or static numbers using +, -, *, and / (e.g., =A1*B1 or =C2/4).
+
 ## Download & Install
 
 You can download the compiled app directly without needing to build it in Xcode.

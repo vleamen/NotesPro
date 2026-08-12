@@ -18,6 +18,8 @@ struct CellData: Identifiable {
 
 // MARK: - The Spreadsheet Engine
 
+// MARK: - The Spreadsheet Engine
+
 class SpreadsheetEngine: ObservableObject {
     let rows: Int = 8
     let cols: Int = 4
@@ -50,6 +52,7 @@ class SpreadsheetEngine: ObservableObject {
         
         let formula = trimmed.dropFirst().uppercased()
         
+        // 1. Aggregate Functions
         if formula.hasPrefix("SUM(") && formula.hasSuffix(")") {
             let rangeString = String(formula.dropFirst(4).dropLast())
             let numbers = getNumbers(from: rangeString)
@@ -69,7 +72,61 @@ class SpreadsheetEngine: ObservableObject {
             return "\(numbers.count)"
         }
         
+        if formula.hasPrefix("MIN(") && formula.hasSuffix(")") {
+            let rangeString = String(formula.dropFirst(4).dropLast())
+            let numbers = getNumbers(from: rangeString)
+            guard !numbers.isEmpty else { return "0" }
+            return formatResult(numbers.min()!)
+        }
+        
+        if formula.hasPrefix("MAX(") && formula.hasSuffix(")") {
+            let rangeString = String(formula.dropFirst(4).dropLast())
+            let numbers = getNumbers(from: rangeString)
+            guard !numbers.isEmpty else { return "0" }
+            return formatResult(numbers.max()!)
+        }
+        
+        // 2. Basic Arithmetic Fallback (e.g., A1+B2 or C3*4)
+        if let mathResult = evaluateBasicMath(formula) {
+            return mathResult
+        }
+        
         return "#ERROR"
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func evaluateBasicMath(_ expression: String) -> String? {
+        let operators: [Character] = ["+", "-", "*", "/"]
+        
+        // Find the first operator to split the expression
+        guard let op = expression.first(where: { operators.contains($0) }) else { return nil }
+        
+        let parts = expression.split(separator: op)
+        guard parts.count == 2 else { return nil }
+        
+        let lhs = resolveValue(String(parts[0]).trimmingCharacters(in: .whitespaces))
+        let rhs = resolveValue(String(parts[1]).trimmingCharacters(in: .whitespaces))
+        
+        switch op {
+        case "+": return formatResult(lhs + rhs)
+        case "-": return formatResult(lhs - rhs)
+        case "*": return formatResult(lhs * rhs)
+        case "/": return rhs == 0 ? "#DIV/0!" : formatResult(lhs / rhs)
+        default: return nil
+        }
+    }
+    
+    private func resolveValue(_ string: String) -> Double {
+        // If it's just a static number, return it
+        if let num = Double(string) { return num }
+        
+        // Otherwise, see if it's a valid cell reference (e.g., "A1")
+        if let (row, col) = parseAddress(string), row < rows, col < cols {
+            return Double(grid[row][col].displayValue) ?? 0.0
+        }
+        
+        return 0.0
     }
     
     private func getNumbers(from range: String) -> [Double] {
